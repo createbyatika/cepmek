@@ -29,6 +29,7 @@ export function useCart() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [jolt, setJolt] = useState(false);
   const [orderDate, setOrderDate] = useState(""); 
+  const [paymentMethod, setPaymentMethod] = useState("COD"); // Fitur Baru: State Pembayaran
 
   const addItem = useCallback((item: Omit<CartItem, "quantity">) => {
     setItems((prev) => {
@@ -72,12 +73,31 @@ export function useCart() {
         .filter(Boolean).join(", ");
       return `${i.quantity}x ${i.name}${opts ? ` (${opts})` : ""}`;
     });
-    const dateLine = orderDate ? `Tanggal Pesanan: ${orderDate}\n` : "";
+
+    const dateLine = orderDate ? `*Tanggal Pesanan:* ${orderDate}\n` : "";
+    
+    // Fitur Baru: Logika pesan pembayaran sesuai pilihan
+    const paymentLine = paymentMethod === "Transfer" 
+      ? `*Metode Pembayaran:* Transfer / Qris\n` 
+      : `*Metode Pembayaran:* COD (Bayar di Tempat)\n`;
+
     const msg = encodeURIComponent(
-      `Halo Admin CEPMEK, saya mau order:\n\n${lines.join("\n")}\n\n${dateLine}Total: Rp ${total.toLocaleString("id-ID")}\nLokasi pengantaran: \nMohon diproses ya!`
+      `Halo Admin CEPMEK, saya mau order:\n\n${lines.join("\n")}\n\n${dateLine}${paymentLine}*Total: Rp ${total.toLocaleString("id-ID")}*\n\nLokasi pengantaran: \nMohon diproses ya!`
     );
     return `https://wa.me/6281372206956?text=${msg}`;
-  }, [items, total, orderDate]);
+  }, [items, total, orderDate, paymentMethod]); // Tambahkan paymentMethod ke dependency
 
-  return { items, addItem, removeItem, total, totalItems, jolt, orderDate, setOrderDate, generateWhatsAppURL };
+  return { 
+    items, 
+    addItem, 
+    removeItem, 
+    total, 
+    totalItems, 
+    jolt, 
+    orderDate, 
+    setOrderDate, 
+    paymentMethod,    // Fitur Baru: Diekspor ke UI
+    setPaymentMethod, // Fitur Baru: Diekspor ke UI
+    generateWhatsAppURL 
+  };
 }
